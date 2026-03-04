@@ -143,44 +143,68 @@ if st.session_state.role in ["Director", "Coordinator"]:
             st.dataframe(m_df, use_container_width=True)
 
 # --- MODULE: ACADEMIC STAFF ---
-# --- MODULE: ACADEMIC STAFF ---
 elif st.session_state.role == "Academic":
     st.title("📖 Academic Staff Portal")
     
-    # 1. Define the tabs
     tab_registry, tab_fault = st.tabs(["Research Registry", "Report Maintenance Fault"])
     
-    # --- TAB 1: RESEARCH ---
     with tab_registry:
-        st.subheader("Register Research")
+        # --- SUBSECTION: THE INPUT FORM ---
+        st.subheader("Register / Update Your Research")
         with st.form("research_reg"):
-            # ... (form inputs) ...
-            if st.form_submit_button("Submit Record"):
-                # ... (save data logic) ...
+            p_title = st.text_input("Research/Paper Title")
+            p_type = st.selectbox("Article Type", ARTICLE_TYPES)
+            p_status = st.selectbox("Current Status", ["Draft", "Under Review", "Pending APC", "Published"])
+            p_apc = st.number_input("APC Amount Requested (N$)", min_value=0)
+            
+            submit_research = st.form_submit_button("Submit Record")
+            
+            if submit_research:
+                old_data = load_data("research_status")
+                new_entry = pd.DataFrame([{
+                    "staff_id": st.session_state.user, 
+                    "full_name": f"{st.session_state.title} {st.session_state.name}",
+                    "department": st.session_state.dept, 
+                    "paper_title": p_title, 
+                    "article_type": p_type, 
+                    "status": p_status, 
+                    "apc_amount": p_apc, 
+                    "director_approval": "Pending" if p_status == "Pending APC" else "N/A",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+                }])
+                conn.update(worksheet="research_status", data=pd.concat([old_data, new_entry], ignore_index=True))
+                st.cache_data.clear()
+                st.success("Record Saved!")
                 st.rerun()
 
+        # --- SUBSECTION: THE HISTORY TABLE ---
+        # NOTICE: This is outside the 'with st.form' but still inside 'with tab_registry'
         st.divider()
-        # IMPORTANT: This history table MUST be inside 'with tab_registry'
-        st.subheader("Your Research Submission History")
+        st.subheader("Your Submission History")
         full_res = load_data("research_status")
         
         if not full_res.empty:
-            # Cleaning the ID to handle the '202246' number issue
+            # Clean numeric IDs (like 202246)
             full_res['staff_id'] = full_res['staff_id'].astype(str).str.split('.').str[0].str.strip()
-            my_res = full_res[full_res['staff_id'] == str(st.session_state.user).strip()]
+            my_id = str(st.session_state.user).strip()
+            
+            my_res = full_res[full_res['staff_id'] == my_id]
             
             if not my_res.empty:
                 st.dataframe(my_res, use_container_width=True)
             else:
-                st.info("No research records found.")
+                st.info(f"No records found for Staff ID: {my_id}")
+        else:
+            st.info("The registry is currently empty.")
 
-    # --- TAB 2: MAINTENANCE ---
     with tab_fault:
-        st.subheader("Report Campus Maintenance Fault")
-        with st.form("staff_fault"):
-            # ... (maintenance inputs) ...
-            if st.form_submit_button("Submit Fault Report"):
-                # ... (save fault logic) ...
+        # Maintenance code goes here...
+        st.subheader("Report Maintenance Fault")
+        with st.form("fault_form"):
+            f_loc = st.text_input("Location")
+            f_desc = st.text_area("Fault Detail")
+            if st.form_submit_button("Submit Fault"):
+                # Save fault logic
                 st.rerun()
 # --- MODULE: MAINTENANCE MANAGER ---
 elif st.session_state.role == "Maintenance":
