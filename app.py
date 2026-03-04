@@ -189,22 +189,23 @@ elif st.session_state.role == "Academic":
         full_res = load_data("research_status")
         
        # --- Updated History Filtering ---
+# --- REINFORCED STAFF ID FILTER ---
 if not full_res.empty:
-    # 1. Clean the data: Convert column to string and strip spaces
-    full_res['staff_id'] = full_res['staff_id'].astype(str).str.strip()
+    # 1. Force the entire column to be a string and remove decimals (like .0)
+    full_res['staff_id'] = full_res['staff_id'].astype(str).str.split('.').str[0].str.strip()
     
-    # 2. Clean the session variable
-    current_user = str(st.session_state.user).strip()
+    # 2. Force the logged-in ID to be a string and strip any spaces
+    current_user_id = str(st.session_state.user).strip()
     
-    # 3. Filter
-    my_res = full_res[full_res['staff_id'] == current_user]
+    # 3. Filter the dataframe
+    my_res = full_res[full_res['staff_id'] == current_user_id]
     
     if not my_res.empty:
+        st.subheader("Your Submission History")
         st.dataframe(my_res, use_container_width=True)
     else:
-        # Debugging info (Only shows if no match is found)
-        st.info(f"Checking records for ID: '{current_user}'")
-        st.warning("No records matched. Please ensure your Staff ID in the 'staff_registry' matches the 'research_status' sheet exactly.")
+        st.info(f"No records found for Staff ID: {current_user_id}")
+        st.caption("Tip: If you just registered, try submitting your first research record above.")
 
     with tab_fault:
         # (Rest of your maintenance fault code remains here)
