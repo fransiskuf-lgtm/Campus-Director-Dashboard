@@ -29,11 +29,9 @@ def to_excel(df):
 
 # --- STANDARDIZED OPTIONS ---
 DEPARTMENTS = [
-    "Civil and Environmental Engineering",
     "Electrical and Computer Engineering",
-    "Mechanical and Marine Engineering",
-    "Mining and Metallurgical Engineering",
-    "Electronics and Telecommunications",
+    "Mechanical and Metalurgical Engineering",
+    "Civil and Mining Engineering",
     "Management & Administration"
 ]
 
