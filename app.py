@@ -220,7 +220,7 @@ elif st.session_state.role == "Academic":
         with st.form("research_reg"):
             p_title = st.text_input("Research/Paper Title")
             p_type = st.selectbox("Article Type", ARTICLE_TYPES)
-            p_status = st.selectbox("Current Status", ["Draft", "Under Review", "Pending APC", "Published"])
+            p_status = st.selectbox("Current Status", ["Draft", "Under Review", "Accepted", "Pending APC", "Published"])
             p_apc = st.number_input("APC Amount Requested (N$)", min_value=0)
             
             if st.form_submit_button("Submit Record"):
@@ -237,8 +237,9 @@ elif st.session_state.role == "Academic":
                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
                 }])
                 conn.update(worksheet="research_status", data=pd.concat([old_data, new_entry], ignore_index=True))
-                st.cache_data.clear()
-                st.rerun()
+                st.cache_data.clear() # Clears the old analytics memory
+                st.success("Updated!")
+                st.rerun() # Refresh app but keep session_state
 
         st.divider()
         st.subheader("Your Submission History")
