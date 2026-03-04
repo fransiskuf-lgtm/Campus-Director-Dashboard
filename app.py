@@ -143,86 +143,44 @@ if st.session_state.role in ["Director", "Coordinator"]:
             st.dataframe(m_df, use_container_width=True)
 
 # --- MODULE: ACADEMIC STAFF ---
+# --- MODULE: ACADEMIC STAFF ---
 elif st.session_state.role == "Academic":
     st.title("📖 Academic Staff Portal")
     
+    # 1. Define the tabs
     tab_registry, tab_fault = st.tabs(["Research Registry", "Report Maintenance Fault"])
     
+    # --- TAB 1: RESEARCH ---
     with tab_registry:
-        st.subheader("Register / Update Your Research")
+        st.subheader("Register Research")
         with st.form("research_reg"):
-            p_title = st.text_input("Research/Paper Title")
-            p_type = st.selectbox("Article Type", ARTICLE_TYPES)
-            p_status = st.selectbox("Current Status", ["Draft", "Under Review", "Pending APC", "Published"])
-            p_apc = st.number_input("APC Amount Requested (N$)", min_value=0)
-            
-            # --- THE FIX FOR THE INDENTATION ERROR IS HERE ---
+            # ... (form inputs) ...
             if st.form_submit_button("Submit Record"):
-                # All code below must be indented further than the 'if' above
-                old_data = load_data("research_status")
-                
-                new_entry = pd.DataFrame([{
-                    "staff_id": st.session_state.user, 
-                    "full_name": f"{st.session_state.title} {st.session_state.name}",
-                    "department": st.session_state.dept, 
-                    "paper_title": p_title, 
-                    "article_type": p_type, 
-                    "status": p_status, 
-                    "apc_amount": p_apc, 
-                    "director_approval": "Pending" if p_status == "Pending APC" else "N/A",
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
-                }])
-                
-                # Combine and Update
-                updated_df = pd.concat([old_data, new_entry], ignore_index=True)
-                conn.update(worksheet="research_status", data=updated_df)
-                
-                # Force the app to clear memory and reload
-                st.cache_data.clear()
-                st.success("Research status successfully recorded!")
-                st.rerun() 
+                # ... (save data logic) ...
+                st.rerun()
 
         st.divider()
-        st.subheader("Your Submission History")
-        
-        # Reload live data for the history table
+        # IMPORTANT: This history table MUST be inside 'with tab_registry'
+        st.subheader("Your Research Submission History")
         full_res = load_data("research_status")
         
-       # --- Updated History Filtering ---
-# --- REINFORCED STAFF ID FILTER ---
-if not full_res.empty:
-    # 1. Force the entire column to be a string and remove decimals (like .0)
-    full_res['staff_id'] = full_res['staff_id'].astype(str).str.split('.').str[0].str.strip()
-    
-    # 2. Force the logged-in ID to be a string and strip any spaces
-    current_user_id = str(st.session_state.user).strip()
-    
-    # 3. Filter the dataframe
-    my_res = full_res[full_res['staff_id'] == current_user_id]
-    
-    if not my_res.empty:
-        st.dataframe(my_res, use_container_width=True)
-    else:
-        st.info(f"No records found for Staff ID: {current_user_id}")
-        st.caption("Tip: If you just registered, try submitting your first research record above.")
+        if not full_res.empty:
+            # Cleaning the ID to handle the '202246' number issue
+            full_res['staff_id'] = full_res['staff_id'].astype(str).str.split('.').str[0].str.strip()
+            my_res = full_res[full_res['staff_id'] == str(st.session_state.user).strip()]
+            
+            if not my_res.empty:
+                st.dataframe(my_res, use_container_width=True)
+            else:
+                st.info("No research records found.")
 
+    # --- TAB 2: MAINTENANCE ---
     with tab_fault:
-        # (Rest of your maintenance fault code remains here)
         st.subheader("Report Campus Maintenance Fault")
         with st.form("staff_fault"):
-            f_loc = st.text_input("Exact Location (Room/Block)")
-            f_desc = st.text_area("Detailed Description of Fault")
+            # ... (maintenance inputs) ...
             if st.form_submit_button("Submit Fault Report"):
-                m_old = load_data("maintenance_tickets")
-                new_t = pd.DataFrame([{
-                    "ticket_id": f"JEDS-{datetime.now().strftime('%M%S')}", 
-                    "reporter": f"{st.session_state.title} {st.session_state.name}", 
-                    "location": f_loc, "fault_description": f_desc, "status": "Open", 
-                    "manager_remarks": "", "date_reported": datetime.now().strftime("%Y-%m-%d")
-                }])
-                conn.update(worksheet="maintenance_tickets", data=pd.concat([m_old, new_t], ignore_index=True))
-                st.cache_data.clear()
-                st.success("Fault report sent!")
+                # ... (save fault logic) ...
                 st.rerun()
 # --- MODULE: MAINTENANCE MANAGER ---
 elif st.session_state.role == "Maintenance":
