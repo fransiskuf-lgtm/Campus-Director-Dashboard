@@ -134,6 +134,20 @@ if st.session_state.role in ["Director", "Coordinator"]:
                 st.rerun()
                 
     st.download_button("📥 Download School Research Report", data=to_excel(res_df), file_name="School_Research_Full.xlsx")
+    
+    
+    if st.session_state.role == "Director":
+        with tab2:
+            st.subheader("Campus Maintenance Oversight")
+            m_df = load_data("maintenance_tickets")
+            
+            # Maintenance Summary Metrics
+            c1, c2 = st.columns(2)
+            c1.metric("Total Tickets", len(m_df))
+            c2.metric("Resolved", len(m_df[m_df['status'] == "Resolved"]))
+            
+            st.dataframe(m_df, use_container_width=True)
+            st.download_button("📥 Export Maintenance Logs", data=to_excel(m_df), file_name="Maintenance_Audit.xlsx")
 
 # --- ROLE: ACADEMIC STAFF ---
 elif st.session_state.role == "Academic":
