@@ -148,8 +148,8 @@ elif st.session_state.role == "Academic":
     
     tab_registry, tab_fault = st.tabs(["Research Registry", "Report Maintenance Fault"])
     
+    # --- TAB 1: RESEARCH ---
     with tab_registry:
-        # --- SUBSECTION: THE INPUT FORM ---
         st.subheader("Register / Update Your Research")
         with st.form("research_reg"):
             p_title = st.text_input("Research/Paper Title")
@@ -157,9 +157,7 @@ elif st.session_state.role == "Academic":
             p_status = st.selectbox("Current Status", ["Draft", "Under Review", "Pending APC", "Published"])
             p_apc = st.number_input("APC Amount Requested (N$)", min_value=0)
             
-            submit_research = st.form_submit_button("Submit Record")
-            
-            if submit_research:
+            if st.form_submit_button("Submit Record"):
                 old_data = load_data("research_status")
                 new_entry = pd.DataFrame([{
                     "staff_id": st.session_state.user, 
@@ -174,38 +172,57 @@ elif st.session_state.role == "Academic":
                 }])
                 conn.update(worksheet="research_status", data=pd.concat([old_data, new_entry], ignore_index=True))
                 st.cache_data.clear()
-                st.success("Record Saved!")
                 st.rerun()
 
-        # --- SUBSECTION: THE HISTORY TABLE ---
-        # NOTICE: This is outside the 'with st.form' but still inside 'with tab_registry'
         st.divider()
         st.subheader("Your Submission History")
         full_res = load_data("research_status")
-        
         if not full_res.empty:
-            # Clean numeric IDs (like 202246)
             full_res['staff_id'] = full_res['staff_id'].astype(str).str.split('.').str[0].str.strip()
-            my_id = str(st.session_state.user).strip()
-            
-            my_res = full_res[full_res['staff_id'] == my_id]
-            
-            if not my_res.empty:
-                st.dataframe(my_res, use_container_width=True)
-            else:
-                st.info(f"No records found for Staff ID: {my_id}")
-        else:
-            st.info("The registry is currently empty.")
+            my_res = full_res[full_res['staff_id'] == str(st.session_state.user).strip()]
+            st.dataframe(my_res, use_container_width=True)
 
+    # --- TAB 2: MAINTENANCE (FIXED SUBMISSION & HISTORY) ---
     with tab_fault:
-        # Maintenance code goes here...
-        st.subheader("Report Maintenance Fault")
-        with st.form("fault_form"):
-            f_loc = st.text_input("Location")
-            f_desc = st.text_area("Fault Detail")
-            if st.form_submit_button("Submit Fault"):
-                # Save fault logic
+        st.subheader("Report Campus Maintenance Fault")
+        with st.form("staff_fault"):
+            f_loc = st.text_input("Exact Location (e.g., Block B, Room 101)")
+            f_desc = st.text_area("Description of the problem")
+            
+            # The logic MUST be inside this 'if' block
+            if st.form_submit_button("Submit Fault Report"):
+                m_old = load_data("maintenance_tickets")
+                new_ticket = pd.DataFrame([{
+                    "ticket_id": f"JEDS-{datetime.now().strftime('%M%S')}", 
+                    "reporter": f"{st.session_state.title} {st.session_state.name}",
+                    "reporter_id": str(st.session_state.user).strip(), # Added to track history
+                    "location": f_loc, 
+                    "fault_description": f_desc, 
+                    "status": "Open", 
+                    "manager_remarks": "", 
+                    "date_reported": datetime.now().strftime("%Y-%m-%d")
+                }])
+                conn.update(worksheet="maintenance_tickets", data=pd.concat([m_old, new_ticket], ignore_index=True))
+                st.cache_data.clear()
+                st.success("Fault report successfully sent to Maintenance!")
                 st.rerun()
+
+        st.divider()
+        st.subheader("Your Reported Faults History")
+        all_faults = load_data("maintenance_tickets")
+        
+        if not all_faults.empty:
+            # Filter by your staff ID
+            if 'reporter_id' in all_faults.columns:
+                all_faults['reporter_id'] = all_faults['reporter_id'].astype(str).str.split('.').str[0].str.strip()
+                my_faults = all_faults[all_faults['reporter_id'] == str(st.session_state.user).strip()]
+                
+                if not my_faults.empty:
+                    st.dataframe(my_faults, use_container_width=True)
+                else:
+                    st.info("You haven't reported any faults yet.")
+            else:
+                st.warning("Note: Older reports may not show ID tracking. New reports will appear here.")
 # --- MODULE: MAINTENANCE MANAGER ---
 elif st.session_state.role == "Maintenance":
     st.title("🔧 Maintenance Manager")
