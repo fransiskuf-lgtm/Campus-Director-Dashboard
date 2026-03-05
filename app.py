@@ -141,15 +141,17 @@ if st.session_state.role in ["Director", "Coordinator"]:
             c1, c2, c3, c4, c5 = st.columns(5)
             
             count_pub = len(unique_res[unique_res['status'] == "Published"])
-            count_acc = len(unique_res[unique_res['status'] == "Accepted"]) # New Status
+            count_acc = len(unique_res[unique_res['status'] == "Accepted"])
+            count_acc = len(unique_res[unique_res['status'] == "Rejected"])
             count_rev = len(unique_res[unique_res['status'] == "Under Review"])
             count_apc = len(unique_res[unique_res['status'] == "Pending APC"])
             
             c1.metric("✅ Published", count_pub)
             c2.metric("🎉 Accepted", count_acc)
-            c3.metric("🔍 Under Review", count_rev)
-            c4.metric("💳 Pending APC", count_apc)
-            c5.metric("📚 Unique Works", len(unique_res))
+            c3.metric("❌ Rejected", count_acc)
+            c4.metric("🔍 Under Review", count_rev)
+            c5.metric("💳 Pending APC", count_apc)
+            c6.metric("📚 Unique Works", len(unique_res))
             
             st.divider()
             
@@ -220,7 +222,7 @@ elif st.session_state.role == "Academic":
         with st.form("research_reg"):
             p_title = st.text_input("Research/Paper Title")
             p_type = st.selectbox("Article Type", ARTICLE_TYPES)
-            p_status = st.selectbox("Current Status", ["Draft", "Under Review", "Accepted", "Pending APC", "Published"])
+            p_status = st.selectbox("Current Status", ["Draft", "Under Review", "Accepted", "Rejected", "Pending APC", "Published"])
             p_apc = st.number_input("APC Amount Requested (N$)", min_value=0)
             
             if st.form_submit_button("Submit Record"):
