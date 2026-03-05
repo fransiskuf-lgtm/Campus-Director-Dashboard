@@ -71,7 +71,7 @@ if 'logged_in' not in st.session_state:
 
 # --- AUTHENTICATION ---
 if not st.session_state.logged_in:
-    st.title("UNAM School of Engineering")
+    st.title("UNAM SEBE CAMPUS MANAGER")
     auth_mode = st.tabs(["Login", "Staff Registration"])
     
     with auth_mode[0]:
