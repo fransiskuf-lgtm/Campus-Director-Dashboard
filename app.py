@@ -57,7 +57,7 @@ DEPARTMENTS = [
     "Civil and Mining Engineering",
     "Management & Administration"
 ]
-ARTICLE_TYPES = ["Journal Article (Peer Reviewed)", "Conference Paper", "Book Chapter", "Technical Report", "Review Paper"]
+ARTICLE_TYPES = ["Journal Article (Peer Reviewed)", "Conference Paper", "Book Chapter", "Technical Report"]
 
 # --- SIDEBAR LOGO ---
 try:
