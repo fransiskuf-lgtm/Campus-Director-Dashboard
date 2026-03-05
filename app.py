@@ -6,7 +6,7 @@ import hashlib
 from io import BytesIO
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="UNAM JEDS Dashboard", layout="wide", page_icon="🏫")
+st.set_page_config(page_title="UNAM JEDS Dashboard", layout="wide", page_icon="⚙️")
 
 # --- SCROLL FIX & CUSTOM STYLING ---
 st.markdown(
