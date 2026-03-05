@@ -188,7 +188,7 @@ if st.session_state.role in ["Director", "Coordinator"]:
             st.subheader("Research Status by Department")
             chart_df = unique_res.groupby(['department', 'status']).size().unstack(fill_value=0)
             # Added 'Accepted' to the chart display list
-            target_metrics = [m for m in ["Published", "Accepted", "Under Review", "Pending APC"] if m in chart_df.columns]
+            target_metrics = [m for m in ["Published", "Accepted", "Rejected", "Under Review", "Pending APC"] if m in chart_df.columns]
             if target_metrics:
                 st.bar_chart(chart_df[target_metrics])
             
